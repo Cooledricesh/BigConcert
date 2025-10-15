@@ -256,8 +256,8 @@ export const CreateBookingRequestSchema = z.object({
   concertId: z.string().uuid(),
   seatIds: z.array(z.string().uuid()).min(1).max(4),
   userName: z.string().min(2).max(50).transform(s => s.trim()),
-  userPhone: z.string().regex(/^[0-9]{10,11}$/),
-  password: z.string().regex(/^[0-9]{4}$/),
+  userPhone: z.string().regex(/^01[016789]\d{7,8}$/, '올바른 휴대전화 번호를 입력해주세요'),
+  password: z.string().regex(/^[0-9]{4}$/, '비밀번호는 4자리 숫자여야 합니다'),
 });
 
 // 좌석 정보 응답
@@ -288,7 +288,7 @@ export const CreateBookingResponseSchema = z.object({
 
 **주요 검증 규칙**:
 - `userName`: 2-50자, 공백 제거
-- `userPhone`: 숫자 10-11자리 (하이픈 제거)
+- `userPhone`: 한국 휴대전화 번호 (010, 011, 016, 017, 018, 019로 시작, 10-11자리)
 - `password`: 숫자 4자리
 - `seatIds`: 최소 1개, 최대 4개
 
@@ -982,7 +982,7 @@ const BookingFormSchema = z.object({
   userName: z.string().min(2, '이름은 최소 2자 이상이어야 합니다').max(50),
   userPhone: z
     .string()
-    .regex(/^[0-9]{10,11}$/, '전화번호는 10-11자리 숫자여야 합니다'),
+    .regex(/^01[016789]\d{7,8}$/, '올바른 휴대전화 번호를 입력해주세요 (예: 01012345678)'),
   password: z.string().regex(/^[0-9]{4}$/, '비밀번호는 4자리 숫자여야 합니다'),
 });
 

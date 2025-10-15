@@ -242,21 +242,28 @@ export const SeatSelectionProvider: React.FC<SeatSelectionProviderProps> = ({
       return false;
     }
 
-    // 세션에 선택 정보 저장 (sessionStorage)
-    sessionStorage.setItem(
-      `booking_${concertId}`,
-      JSON.stringify({
-        concertId,
-        selectedSeats: state.selectedSeats,
-        totalPrice: state.totalPrice,
-        timestamp: Date.now(),
-      })
-    );
+    // 좌석 데이터 형식 변환 (SeatResponse 형식에 맞게)
+    const seatsData = state.selectedSeats.map(s => {
+      const seat = state.seats.find(seat => seat.id === s.seatId);
+      return seat;
+    }).filter(Boolean); // null/undefined 제거
+
+    // 세션에 선택 정보 저장 (selected_seats 키 사용)
+    const SELECTED_SEATS_KEY = 'selected_seats';
+    const EXPIRY_MINUTES = 30;
+
+    const storageData = {
+      concertId,
+      seats: seatsData,
+      expiresAt: Date.now() + EXPIRY_MINUTES * 60 * 1000,
+    };
+
+    sessionStorage.setItem(SELECTED_SEATS_KEY, JSON.stringify(storageData));
 
     // 예약 정보 입력 페이지로 이동
     router.push(`/concerts/${concertId}/booking`);
     return true;
-  }, [state.selectedSeats, state.totalPrice, concertId, checkAvailability, refreshSeats, router]);
+  }, [state.selectedSeats, state.totalPrice, state.seats, concertId, checkAvailability, refreshSeats, router]);
 
   // 선택 유효성 검증
   const validateSelection = useCallback((): boolean => {

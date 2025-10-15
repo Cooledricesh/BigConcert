@@ -12,6 +12,8 @@ export interface BookingConfirmationData {
  * 예약 완료 정보 저장
  */
 export const saveBookingConfirmation = (booking: CreateBookingResponse) => {
+  if (typeof window === 'undefined') return;
+
   const data: BookingConfirmationData = {
     booking,
     expiresAt: Date.now() + EXPIRY_MINUTES * 60 * 1000,
@@ -28,6 +30,8 @@ export const saveBookingConfirmation = (booking: CreateBookingResponse) => {
  * 예약 완료 정보 조회
  */
 export const loadBookingConfirmation = (): CreateBookingResponse | null => {
+  if (typeof window === 'undefined') return null;
+
   try {
     const stored = sessionStorage.getItem(BOOKING_CONFIRMATION_KEY);
     if (!stored) return null;
@@ -43,7 +47,9 @@ export const loadBookingConfirmation = (): CreateBookingResponse | null => {
     return data.booking;
   } catch (error) {
     console.error('Failed to load booking confirmation:', error);
-    sessionStorage.removeItem(BOOKING_CONFIRMATION_KEY);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(BOOKING_CONFIRMATION_KEY);
+    }
     return null;
   }
 };
@@ -52,6 +58,8 @@ export const loadBookingConfirmation = (): CreateBookingResponse | null => {
  * 예약 완료 정보 삭제
  */
 export const clearBookingConfirmation = () => {
+  if (typeof window === 'undefined') return;
+
   try {
     sessionStorage.removeItem(BOOKING_CONFIRMATION_KEY);
   } catch (error) {

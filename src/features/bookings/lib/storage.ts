@@ -13,6 +13,8 @@ export interface SelectedSeatsData {
  * 선택 좌석 정보 저장
  */
 export const saveSelectedSeats = (concertId: string, seats: SeatResponse[]) => {
+  if (typeof window === 'undefined') return;
+
   const data: SelectedSeatsData = {
     concertId,
     seats,
@@ -31,6 +33,8 @@ export const saveSelectedSeats = (concertId: string, seats: SeatResponse[]) => {
  * - 만료된 경우 자동 삭제
  */
 export const loadSelectedSeats = (): SelectedSeatsData | null => {
+  if (typeof window === 'undefined') return null;
+
   try {
     const stored = sessionStorage.getItem(SELECTED_SEATS_KEY);
     if (!stored) return null;
@@ -46,7 +50,9 @@ export const loadSelectedSeats = (): SelectedSeatsData | null => {
     return data;
   } catch (error) {
     console.error('Failed to load selected seats:', error);
-    sessionStorage.removeItem(SELECTED_SEATS_KEY);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(SELECTED_SEATS_KEY);
+    }
     return null;
   }
 };
@@ -55,6 +61,8 @@ export const loadSelectedSeats = (): SelectedSeatsData | null => {
  * 선택 좌석 정보 삭제
  */
 export const clearSelectedSeats = () => {
+  if (typeof window === 'undefined') return;
+
   try {
     sessionStorage.removeItem(SELECTED_SEATS_KEY);
   } catch (error) {

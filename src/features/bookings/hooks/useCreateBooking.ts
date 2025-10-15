@@ -24,17 +24,8 @@ export const useCreateBooking = (): UseMutationResult<
       try {
         const response = await apiClient.post('/api/bookings', data);
 
-        // 에러 응답 체크
-        if (!response.data.success) {
-          const errorData = response.data as ApiErrorResponse;
-          const error = new Error(errorData.error.message);
-          (error as any).code = errorData.error.code;
-          (error as any).details = errorData.error.details;
-          throw error;
-        }
-
         // 응답 검증
-        const parsed = CreateBookingResponseSchema.safeParse(response.data.data);
+        const parsed = CreateBookingResponseSchema.safeParse(response.data);
 
         if (!parsed.success) {
           throw new Error('Invalid response format');

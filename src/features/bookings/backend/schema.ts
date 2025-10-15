@@ -20,7 +20,7 @@ export const CreateBookingRequestSchema = z.object({
   concertId: z.string().uuid(),
   seatIds: z.array(z.string().uuid()).min(1).max(4),
   userName: z.string().min(2).max(50).transform(s => s.trim()),
-  userPhone: z.string().regex(/^[0-9]{10,11}$/, '전화번호는 10-11자리 숫자여야 합니다'),
+  userPhone: z.string().regex(/^01[016789]\d{7,8}$/, '올바른 휴대전화 번호를 입력해주세요'),
   password: z.string().regex(/^[0-9]{4}$/, '비밀번호는 4자리 숫자여야 합니다'),
 });
 

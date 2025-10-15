@@ -24,13 +24,19 @@ DECLARE
 BEGIN
   -- 1. 좌석 가용성 확인 및 Lock
   -- FOR UPDATE를 사용하여 선택한 좌석을 잠금
-  SELECT COUNT(*)
-  INTO v_available_count
-  FROM seats
-  WHERE id = ANY(p_seat_ids)
-    AND concert_id = p_concert_id
-    AND status = 'available'
-  FOR UPDATE;
+  -- 먼저 좌석을 잠그고, 그 결과를 카운트
+  v_available_count := 0;
+
+  FOR v_seat_record IN
+    SELECT id
+    FROM seats
+    WHERE id = ANY(p_seat_ids)
+      AND concert_id = p_concert_id
+      AND status = 'available'
+    FOR UPDATE
+  LOOP
+    v_available_count := v_available_count + 1;
+  END LOOP;
 
   -- 요청한 좌석 수와 사용 가능한 좌석 수가 다르면 에러
   IF v_available_count != array_length(p_seat_ids, 1) THEN
@@ -96,8 +102,8 @@ CREATE OR REPLACE FUNCTION get_seats_for_booking(
 RETURNS TABLE (
   id UUID,
   section TEXT,
-  row INTEGER,
-  number INTEGER,
+  "row" INTEGER,
+  "number" INTEGER,
   grade TEXT,
   price INTEGER
 )
@@ -108,13 +114,13 @@ BEGIN
   SELECT
     s.id,
     s.section,
-    s.row,
-    s.number,
+    s."row",
+    s."number",
     s.grade,
     s.price
   FROM seats s
   WHERE s.id = ANY(p_seat_ids)
-  ORDER BY s.section, s.row, s.number;
+  ORDER BY s.section, s."row", s."number";
 END;
 $$;
 
