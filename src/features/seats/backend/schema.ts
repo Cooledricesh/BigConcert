@@ -11,8 +11,8 @@ export const SeatTableRowSchema = z.object({
   grade: z.enum(['Special', 'Premium', 'Advanced', 'Regular']),
   price: z.number().int().positive(),
   status: z.enum(['available', 'reserved']),
-  created_at: z.string().datetime().optional(),
-  updated_at: z.string().datetime().optional(),
+  created_at: z.string().optional(), // datetime 검증 제거 (DB 형식이 다를 수 있음)
+  updated_at: z.string().optional(), // datetime 검증 제거 (DB 형식이 다를 수 있음)
 });
 
 export type SeatRow = z.infer<typeof SeatTableRowSchema>;

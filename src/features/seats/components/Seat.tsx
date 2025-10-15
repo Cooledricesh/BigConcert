@@ -39,14 +39,14 @@ export function Seat({ seat }: SeatProps) {
       onMouseLeave={handleMouseLeave}
       disabled={seat.status === 'reserved'}
       className={cn(
-        'w-10 h-10 rounded text-xs font-medium transition-all',
+        'w-6 h-6 lg:w-8 lg:h-8 rounded text-[10px] lg:text-xs font-medium transition-all',
         'flex items-center justify-center',
         'hover:scale-110 active:scale-95',
         seatColor,
         seat.status === 'reserved'
           ? 'cursor-not-allowed opacity-50'
           : 'cursor-pointer',
-        isSelected && 'ring-2 ring-white scale-105',
+        isSelected && 'ring-1 lg:ring-2 ring-white scale-105',
         isHovered && !isSelected && 'scale-110',
         'text-white'
       )}

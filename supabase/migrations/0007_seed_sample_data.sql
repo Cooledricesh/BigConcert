@@ -7,11 +7,11 @@
 
 DO $$
 DECLARE
-    v_concert1_id UUID;
-    v_concert2_id UUID;
-    v_concert3_id UUID;
-    v_concert4_id UUID;
-    v_concert5_id UUID;
+    v_concert1_id UUID := 'c5e8b44b-a4fd-4164-9042-6152d424e7e4'::uuid;  -- 테스트용 고정 UUID
+    v_concert2_id UUID := '550e8400-e29b-41d4-a716-446655440001'::uuid;
+    v_concert3_id UUID := '550e8400-e29b-41d4-a716-446655440002'::uuid;
+    v_concert4_id UUID := '550e8400-e29b-41d4-a716-446655440003'::uuid;
+    v_concert5_id UUID := '550e8400-e29b-41d4-a716-446655440004'::uuid;
     v_current_concert_id UUID;
     v_current_section TEXT;
     v_row_num INTEGER;
@@ -20,60 +20,70 @@ DECLARE
     v_seat1_id UUID;
     v_seat2_id UUID;
 BEGIN
+    -- 기존 데이터 삭제 (중복 방지)
+    DELETE FROM concerts WHERE id IN (
+        v_concert1_id, v_concert2_id, v_concert3_id, v_concert4_id, v_concert5_id
+    );
+
     -- 콘서트 1: IU 콘서트 (2주 후)
-    INSERT INTO concerts (title, artist, venue, date, poster_image, description)
+    INSERT INTO concerts (id, title, artist, venue, date, poster_image, description)
     VALUES (
+        v_concert1_id,
         'IU - The Golden Hour',
         'IU (아이유)',
         '올림픽공원 체조경기장',
         NOW() + INTERVAL '14 days',
         'https://picsum.photos/400/600?random=1',
         '아이유의 특별한 골든 아워 콘서트. 히트곡 메들리와 신곡 무대까지 다채로운 구성으로 팬들을 찾아갑니다.'
-    ) RETURNING id INTO v_concert1_id;
+    );
 
     -- 콘서트 2: 뉴진스 콘서트 (1개월 후)
-    INSERT INTO concerts (title, artist, venue, date, poster_image, description)
+    INSERT INTO concerts (id, title, artist, venue, date, poster_image, description)
     VALUES (
+        v_concert2_id,
         'NewJeans - Bunnies Camp 2025',
         'NewJeans',
         '고척스카이돔',
         NOW() + INTERVAL '30 days',
         'https://picsum.photos/400/600?random=2',
         '뉴진스와 버니즈가 함께하는 특별한 팬미팅 콘서트. Y2K 감성 가득한 무대와 깜짝 이벤트가 준비되어 있습니다.'
-    ) RETURNING id INTO v_concert2_id;
+    );
 
     -- 콘서트 3: 세븐틴 콘서트 (45일 후)
-    INSERT INTO concerts (title, artist, venue, date, poster_image, description)
+    INSERT INTO concerts (id, title, artist, venue, date, poster_image, description)
     VALUES (
+        v_concert3_id,
         'SEVENTEEN - Follow to Seoul',
         'SEVENTEEN',
         '고척스카이돔',
         NOW() + INTERVAL '45 days',
         'https://picsum.photos/400/600?random=3',
         '세븐틴 월드투어 서울 공연. 완벽한 칼군무와 라이브, 13명의 에너지가 폭발하는 무대를 만나보세요.'
-    ) RETURNING id INTO v_concert3_id;
+    );
 
     -- 콘서트 4: 임영웅 콘서트 (2개월 후)
-    INSERT INTO concerts (title, artist, venue, date, poster_image, description)
+    INSERT INTO concerts (id, title, artist, venue, date, poster_image, description)
     VALUES (
+        v_concert4_id,
         '임영웅 - IM HERO',
         '임영웅',
         '잠실실내체육관',
         NOW() + INTERVAL '60 days',
         'https://picsum.photos/400/600?random=4',
         '전 세대를 아우르는 국민가수 임영웅의 단독 콘서트. 감동과 위로의 무대로 여러분을 초대합니다.'
-    ) RETURNING id INTO v_concert4_id;
+    );
 
     -- 콘서트 5: 에스파 콘서트 (75일 후)
-    INSERT INTO concerts (title, artist, venue, date, poster_image, description)
+    INSERT INTO concerts (id, title, artist, venue, date, poster_image, description)
     VALUES (
+        v_concert5_id,
         'aespa - SYNK : PARALLEL LINE',
         'aespa',
         '올림픽공원 KSPO DOME',
         NOW() + INTERVAL '75 days',
         'https://picsum.photos/400/600?random=5',
         '메타버스 세계관과 현실이 만나는 에스파의 혁신적인 콘서트. 광야에서 펼쳐지는 환상적인 퍼포먼스를 경험하세요.'
-    ) RETURNING id INTO v_concert5_id;
+    );
 
     -- ========================================
     -- 각 콘서트별 좌석 데이터 생성 (320석씩)

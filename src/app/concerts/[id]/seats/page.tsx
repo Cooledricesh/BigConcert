@@ -79,8 +79,8 @@ export default function SeatSelectionPage({
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="container mx-auto px-2 lg:px-4 py-4 lg:py-8">
+        <div className="max-w-full xl:max-w-[1600px] mx-auto">
           <SeatSelectionProvider concertId={id}>
             <SeatSelectionContent />
           </SeatSelectionProvider>

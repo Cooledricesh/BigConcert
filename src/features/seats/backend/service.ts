@@ -38,7 +38,11 @@ export const getSeatsByConcertId = async (
     .eq('id', concertId)
     .single();
 
-  if (concertError || !concert) {
+  if (concertError) {
+    return failure(404, seatErrorCodes.invalidConcert, `콘서트 조회 중 에러: ${concertError.message}`);
+  }
+
+  if (!concert) {
     return failure(404, seatErrorCodes.invalidConcert, '콘서트를 찾을 수 없습니다');
   }
 

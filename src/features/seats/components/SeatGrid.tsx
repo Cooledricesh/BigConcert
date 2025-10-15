@@ -22,28 +22,39 @@ export function SeatGrid({ section, seats }: SeatGridProps) {
   const rows = Array.from({ length: 20 }, (_, i) => i + 1);
 
   return (
-    <div className="border rounded-lg p-4">
-      <div className="text-center font-bold mb-4 text-lg">
+    <div className="border rounded-lg p-2 lg:p-3">
+      <div className="text-center font-bold mb-2 lg:mb-3 text-sm lg:text-base">
         {section} 구역
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1">
         {rows.map((row) => {
           const rowSeats = seatsByRow.get(row) || [];
           // 좌석 번호 순 정렬
           rowSeats.sort((a, b) => a.number - b.number);
 
           return (
-            <div key={row} className="flex items-center gap-2">
+            <div key={row} className="flex items-center gap-1">
               {/* 열 번호 */}
-              <div className="w-8 text-center text-sm font-medium">
+              <div className="w-5 lg:w-6 text-center text-xs lg:text-sm font-medium">
                 {row}
               </div>
 
               {/* 좌석 버튼 */}
-              <div className="flex gap-1">
-                {rowSeats.map((seat) => (
-                  <Seat key={seat.id} seat={seat} />
-                ))}
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4].map((number) => {
+                  const seat = rowSeats.find((s) => s.number === number);
+                  if (seat) {
+                    return <Seat key={seat.id} seat={seat} />;
+                  } else {
+                    // 빈 좌석 공간
+                    return (
+                      <div
+                        key={`empty-${row}-${number}`}
+                        className="w-6 h-6 lg:w-8 lg:h-8"
+                      />
+                    );
+                  }
+                })}
               </div>
             </div>
           );
