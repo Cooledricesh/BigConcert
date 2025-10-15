@@ -5,6 +5,8 @@ import type {
   CreateBookingRequest,
   CreateBookingResponse,
   BookingDetailSeat,
+  SearchBookingsRequest,
+  FinalSearchBookingsResponse,
 } from './schema';
 import { bookingErrorCodes, bookingErrorMessages, type BookingServiceError } from './error';
 
@@ -241,4 +243,142 @@ export const getBookingDetail = async (
   };
 
   return success(response);
+};
+
+/**
+ * 예약 조회 서비스
+ * - 전화번호로 예약 조회
+ * - 비밀번호 해시 검증
+ * - 예약 상세 정보 JOIN 조회
+ * - 좌석 정보 포맷팅
+ * - 최신순 정렬
+ */
+export const searchBookings = async (
+  client: SupabaseClient,
+  request: SearchBookingsRequest,
+): Promise<HandlerResult<FinalSearchBookingsResponse, BookingServiceError, unknown>> => {
+  const { userPhone, password } = request;
+
+  // 1. 전화번호로 예약 조회
+  const { data: bookings, error: bookingsError } = await client
+    .from('bookings')
+    .select('id, password_hash')
+    .eq('user_phone', userPhone)
+    .eq('status', 'confirmed');
+
+  if (bookingsError) {
+    return failure(500, bookingErrorCodes.databaseError, '데이터베이스 오류가 발생했습니다');
+  }
+
+  // 2. 예약이 없는 경우
+  if (!bookings || bookings.length === 0) {
+    // 빈 배열 반환 (추천)
+    return success({ bookings: [] }, 200);
+  }
+
+  // 3. 비밀번호 검증 (첫 번째 예약의 비밀번호 해시 사용)
+  // 주의: 동일 전화번호의 모든 예약은 동일한 비밀번호를 사용한다고 가정
+  const firstBooking = bookings[0];
+  let isPasswordValid: boolean;
+
+  try {
+    const bcrypt = await import('bcryptjs');
+    isPasswordValid = await bcrypt.compare(password, firstBooking.password_hash);
+  } catch (error) {
+    console.error('Password comparison failed:', error);
+    return failure(500, bookingErrorCodes.databaseError, '인증 처리 중 오류가 발생했습니다');
+  }
+
+  if (!isPasswordValid) {
+    return failure(401, bookingErrorCodes.invalidCredentials, '전화번호 또는 비밀번호가 일치하지 않습니다');
+  }
+
+  // 4. 예약 상세 정보 조회 (JOIN)
+  const bookingIds = bookings.map(b => b.id);
+
+  const { data: bookingDetails, error: detailsError } = await client
+    .from('bookings')
+    .select(`
+      id,
+      concert_id,
+      user_name,
+      user_phone,
+      total_price,
+      status,
+      created_at,
+      concerts (
+        id,
+        title,
+        artist,
+        date,
+        venue
+      ),
+      booking_seats (
+        seats (
+          id,
+          section,
+          row,
+          number,
+          grade,
+          price
+        )
+      )
+    `)
+    .in('id', bookingIds)
+    .eq('status', 'confirmed')
+    .order('created_at', { ascending: false });
+
+  if (detailsError || !bookingDetails) {
+    return failure(500, bookingErrorCodes.fetchError, '예약 정보를 불러올 수 없습니다');
+  }
+
+  // 5. 데이터 가공
+  const formattedBookings = bookingDetails.map(booking => {
+    const concert = Array.isArray(booking.concerts) ? booking.concerts[0] : booking.concerts;
+
+    if (!concert) {
+      throw new Error('Concert data is missing');
+    }
+
+    // 좌석 정보 포맷팅
+    const seats = booking.booking_seats
+      .map(bs => {
+        const seat = Array.isArray(bs.seats) ? bs.seats[0] : bs.seats;
+        if (!seat) return null;
+
+        return {
+          seatId: seat.id,
+          section: seat.section,
+          row: seat.row,
+          number: seat.number,
+          grade: seat.grade,
+          price: seat.price,
+          formatted: `${seat.section}-${seat.row}-${seat.number}`, // 구역-열-번호
+        };
+      })
+      .filter((seat): seat is any => seat !== null)
+      .sort((a, b) => {
+        // 구역 → 열 → 번호 순 정렬
+        if (a.section !== b.section) return a.section.localeCompare(b.section);
+        if (a.row !== b.row) return a.row - b.row;
+        return a.number - b.number;
+      });
+
+    return {
+      bookingId: booking.id,
+      concertId: concert.id,
+      concertTitle: concert.title,
+      concertDate: concert.date,
+      concertVenue: concert.venue,
+      concertArtist: concert.artist,
+      seats,
+      userName: booking.user_name,
+      userPhone: booking.user_phone,
+      totalPrice: booking.total_price,
+      status: booking.status,
+      createdAt: booking.created_at,
+    };
+  });
+
+  return success({ bookings: formattedBookings }, 200);
 };

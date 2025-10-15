@@ -5,6 +5,10 @@ export type {
   CreateBookingResponse,
   BookingDetailSeat,
   BookingDetail,
+  SearchBookingsRequest,
+  FinalSearchBookingsResponse,
+  BookingDetailWithFormattedSeats,
+  BookingDetailSeatWithFormatted,
 } from '../backend/schema';
 
 export {
@@ -12,4 +16,8 @@ export {
   CreateBookingResponseSchema,
   BookingDetailSeatSchema,
   BookingDetailSchema,
+  SearchBookingsRequestSchema,
+  FinalSearchBookingsResponseSchema,
+  BookingDetailWithFormattedSeatsSchema,
+  BookingDetailSeatWithFormattedSchema,
 } from '../backend/schema';

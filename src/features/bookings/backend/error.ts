@@ -20,6 +20,10 @@ export const bookingErrorCodes = {
   // 예약 관련
   bookingNotFound: 'BOOKING_NOT_FOUND',
   bookingCancelled: 'BOOKING_CANCELLED',
+
+  // 인증 관련 (예약 조회용)
+  invalidCredentials: 'INVALID_CREDENTIALS',
+  tooManyAttempts: 'TOO_MANY_ATTEMPTS',
 } as const;
 
 type BookingErrorValue = (typeof bookingErrorCodes)[keyof typeof bookingErrorCodes];
@@ -40,4 +44,6 @@ export const bookingErrorMessages: Record<BookingServiceError, string> = {
   [bookingErrorCodes.databaseError]: '데이터베이스 오류가 발생했습니다',
   [bookingErrorCodes.bookingNotFound]: '예약을 찾을 수 없습니다',
   [bookingErrorCodes.bookingCancelled]: '취소된 예약입니다',
+  [bookingErrorCodes.invalidCredentials]: '전화번호 또는 비밀번호가 일치하지 않습니다',
+  [bookingErrorCodes.tooManyAttempts]: '잠시 후 다시 시도해주세요',
 };

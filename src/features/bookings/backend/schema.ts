@@ -83,3 +83,32 @@ export const BookingDetailSchema = z.object({
 });
 
 export type BookingDetail = z.infer<typeof BookingDetailSchema>;
+
+// 예약 조회 요청 스키마
+export const SearchBookingsRequestSchema = z.object({
+  userPhone: z.string().regex(/^01[016789]\d{7,8}$/, '올바른 휴대전화 번호를 입력해주세요'),
+  password: z.string().regex(/^[0-9]{4}$/, '비밀번호는 4자리 숫자여야 합니다'),
+});
+
+export type SearchBookingsRequest = z.infer<typeof SearchBookingsRequestSchema>;
+
+// 포맷된 좌석 정보 추가 (기존 BookingDetailSeatSchema 확장)
+export const BookingDetailSeatWithFormattedSchema = BookingDetailSeatSchema.extend({
+  formatted: z.string(), // 예: A-1-3
+});
+
+export type BookingDetailSeatWithFormatted = z.infer<typeof BookingDetailSeatWithFormattedSchema>;
+
+// BookingDetail에 formatted 좌석 정보 적용
+export const BookingDetailWithFormattedSeatsSchema = BookingDetailSchema.extend({
+  seats: z.array(BookingDetailSeatWithFormattedSchema),
+});
+
+export type BookingDetailWithFormattedSeats = z.infer<typeof BookingDetailWithFormattedSeatsSchema>;
+
+// 최종 응답 스키마
+export const FinalSearchBookingsResponseSchema = z.object({
+  bookings: z.array(BookingDetailWithFormattedSeatsSchema),
+});
+
+export type FinalSearchBookingsResponse = z.infer<typeof FinalSearchBookingsResponseSchema>;
