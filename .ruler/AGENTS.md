@@ -160,6 +160,9 @@ use following libraries for specific functionalities:
 
 - Use appropriate techniques
 - Prefer returning errors over exceptions
+- Avoid try-catch blocks that create scope issues; declare variables outside blocks when needed in outer scope
+- When handling async Supabase queries, handle errors directly with if/else rather than wrapping in try-catch
+- Always validate data exists before accessing its properties to prevent reference errors
 
 ## Testing:
 
