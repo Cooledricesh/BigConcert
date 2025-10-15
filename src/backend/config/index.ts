@@ -9,7 +9,8 @@ const envSchema = z.object({
 let cachedConfig: AppConfig | null = null;
 
 export const getAppConfig = (): AppConfig => {
-  if (cachedConfig) {
+  // Always reset cache to get fresh config in runtime
+  if (cachedConfig && process.env.NODE_ENV !== 'production') {
     return cachedConfig;
   }
 
