@@ -58,16 +58,10 @@ export default function BookingConfirmationPage({
   }, [bookingId, router, toast]);
 
   // 페이지 이탈 시 예약 정보 정리
-  useEffect(() => {
-    return () => {
-      // 컴포넌트 언마운트 시 예약 정보 삭제
-      // 단, 예약 조회 페이지로 이동하는 경우는 유지
-      const nextPath = window.location.pathname;
-      if (!nextPath.includes('/bookings')) {
-        clearBookingConfirmation();
-      }
-    };
-  }, []);
+  // 주의: cleanup 함수를 사용하면 React StrictMode/Fast Refresh로 인해
+  // 재마운트 시 sessionStorage가 삭제되는 문제가 발생합니다.
+  // 대신 TTL(30분)에 의존하여 자동 만료되도록 하고,
+  // "홈으로" 버튼에서만 명시적으로 정리합니다.
 
   if (!bookingData) {
     return (

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { HandlerResult, SuccessResult, ErrorResult } from '@/backend/http/result';
+import type { HandlerResult, SuccessResult, ErrorResult } from '@/backend/http/response';
 import { failure, success } from '@/backend/http/response';
 import type {
   CreateBookingRequest,
@@ -223,12 +223,15 @@ export const getBookingDetail = async (
     price: bs.seats.price,
   }));
 
+  // concerts를 배열에서 추출
+  const concertData = Array.isArray(booking.concerts) ? booking.concerts[0] : booking.concerts;
+
   const response: CreateBookingResponse = {
     bookingId: booking.id,
-    concertId: booking.concerts.id,
-    concertTitle: booking.concerts.title,
-    concertDate: booking.concerts.date,
-    concertVenue: booking.concerts.venue,
+    concertId: concertData.id,
+    concertTitle: concertData.title,
+    concertDate: concertData.date,
+    concertVenue: concertData.venue,
     seats,
     userName: booking.user_name,
     userPhone: booking.user_phone,

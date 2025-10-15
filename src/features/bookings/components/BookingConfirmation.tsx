@@ -4,11 +4,13 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { CheckCircle2, Calendar, MapPin, User, Phone, Music, Ticket } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import type { CreateBookingResponse } from '../lib/dto';
+import { clearBookingConfirmation } from '../lib/confirmationStorage';
 
 interface BookingConfirmationProps {
   booking: CreateBookingResponse;
@@ -22,6 +24,8 @@ const gradeColors: Record<string, string> = {
 };
 
 export function BookingConfirmation({ booking }: BookingConfirmationProps) {
+  const router = useRouter();
+
   const formattedDate = format(
     new Date(booking.concertDate),
     'yyyy년 M월 d일 (E) HH:mm',
@@ -33,6 +37,13 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
     'yyyy년 M월 d일 HH:mm:ss',
     { locale: ko }
   );
+
+  const handleGoHome = () => {
+    // 세션 정리
+    clearBookingConfirmation();
+    // 홈으로 이동
+    router.push('/');
+  };
 
   return (
     <div className="space-y-6">
@@ -155,17 +166,23 @@ export function BookingConfirmation({ booking }: BookingConfirmationProps) {
 
       {/* 액션 버튼 */}
       <div className="space-y-3">
-        <Link href="/bookings" className="block">
+        <Link
+          href={`/bookings?phone=${encodeURIComponent(booking.userPhone)}`}
+          className="block"
+        >
           <Button className="w-full" size="lg">
             예약 조회 페이지로 이동
           </Button>
         </Link>
 
-        <Link href="/" className="block">
-          <Button variant="outline" className="w-full" size="lg">
-            홈으로 돌아가기
-          </Button>
-        </Link>
+        <Button
+          variant="outline"
+          className="w-full"
+          size="lg"
+          onClick={handleGoHome}
+        >
+          홈으로 돌아가기
+        </Button>
       </div>
     </div>
   );

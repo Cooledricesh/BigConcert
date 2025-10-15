@@ -54,16 +54,25 @@ export default function BookingPage({
   }, [concertId, router, toast]);
 
   const handleBookingSubmit = async (formData: {
-    userName: string;
-    userPhone: string;
-    password: string;
+    userName?: string;
+    userPhone?: string;
+    password?: string;
   }) => {
+    // 필수 필드 검증 (form에서 이미 검증되었지만 타입 안정성을 위해)
+    if (!formData.userName || !formData.userPhone || !formData.password) {
+      toast({
+        title: '입력 오류',
+        description: '모든 필드를 입력해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (!selectedSeatsData) return;
 
     const requestData: CreateBookingRequest = {
       concertId,
       seatIds: selectedSeatsData.seats.map((seat) => seat.id),
-      userName: formData.userName,
+      userName: formData.userName.trim(),
       userPhone: formData.userPhone,
       password: formData.password,
     };

@@ -21,10 +21,8 @@ export const useBlockBack = () => {
       // 다시 현재 페이지를 푸시하여 뒤로가기 차단
       window.history.pushState(null, '', window.location.href);
 
-      // 홈으로 리다이렉트하려면 확인 필요
-      if (window.confirm('예약이 완료되었습니다. 홈으로 이동하시겠습니까?')) {
-        router.replace('/');
-      }
+      // spec.md 요구사항: 즉시 홈으로 리다이렉트 (confirm 없음)
+      router.replace('/');
     };
 
     window.addEventListener('popstate', handlePopState);

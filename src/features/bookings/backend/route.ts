@@ -1,10 +1,9 @@
 import type { Hono } from 'hono';
-import { respond } from '@/backend/http/response';
+import { respond, type ErrorResult } from '@/backend/http/response';
 import { getLogger, getSupabase, type AppEnv } from '@/backend/hono/context';
 import { createBooking, getBookingDetail } from './service';
 import { CreateBookingRequestSchema } from './schema';
 import { bookingErrorCodes, bookingErrorMessages } from './error';
-import type { ErrorResult } from '@/backend/http/result';
 import type { BookingServiceError } from './error';
 
 export const registerBookingsRoutes = (app: Hono<AppEnv>) => {

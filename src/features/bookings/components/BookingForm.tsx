@@ -13,8 +13,7 @@ const BookingFormSchema = z.object({
   userName: z
     .string()
     .min(2, '이름은 최소 2자 이상이어야 합니다')
-    .max(50, '이름은 최대 50자까지 입력할 수 있습니다')
-    .transform(s => s.trim()),
+    .max(50, '이름은 최대 50자까지 입력할 수 있습니다'),
   userPhone: z
     .string()
     .regex(/^01[016789]\d{7,8}$/, '올바른 휴대전화 번호를 입력해주세요 (예: 01012345678)'),
@@ -26,7 +25,7 @@ const BookingFormSchema = z.object({
 type BookingFormData = z.infer<typeof BookingFormSchema>;
 
 interface BookingFormProps {
-  onSubmit: (data: BookingFormData) => void;
+  onSubmit: (data: BookingFormData) => void | Promise<void>;
   isLoading: boolean;
 }
 
