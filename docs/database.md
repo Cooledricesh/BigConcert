@@ -396,6 +396,50 @@ ORDER BY b.created_at DESC;
 
 ---
 
+## 시스템 시간대 정책
+
+### 기본 원칙
+- **기준 시간대**: 한국 표준시(KST, UTC+9)
+- **저장 형식**: `TIMESTAMP WITH TIME ZONE` (모든 시간 관련 컬럼)
+- **API 통신**: ISO 8601 형식 (예: `2024-12-31T20:00:00+09:00`)
+
+### 구현 가이드라인
+1. **데이터베이스 설정**
+   - PostgreSQL 서버 시간대: `Asia/Seoul`로 설정
+   - 세션 시간대 설정: `SET TIME ZONE 'Asia/Seoul';`
+
+2. **애플리케이션 레벨**
+   - Node.js 서버: `TZ=Asia/Seoul` 환경 변수 설정
+   - date-fns 라이브러리 사용 시 KST 기준 처리
+   - API 응답 시 ISO 8601 형식으로 변환
+
+3. **클라이언트 처리**
+   - 사용자 로컬 시간대로 표시
+   - 서버 통신 시 KST로 변환하여 전송
+   - date-fns-tz 라이브러리로 시간대 변환
+
+### 주의사항
+- `NOW()` 함수 사용 시 서버 시간대 확인 필수
+- 날짜 비교 연산 시 시간대 일치 여부 확인
+- 일광절약시간(DST)는 한국에서 미적용
+- created_at, updated_at 등 자동 생성 시간도 KST 기준
+
+### 예시 쿼리
+```sql
+-- 한국 시간 기준 오늘 공연 조회
+SELECT * FROM concerts
+WHERE date::date = (NOW() AT TIME ZONE 'Asia/Seoul')::date;
+
+-- 특정 시간대로 변환하여 표시
+SELECT
+    title,
+    date AT TIME ZONE 'Asia/Seoul' as korea_time,
+    date AT TIME ZONE 'UTC' as utc_time
+FROM concerts;
+```
+
+---
+
 ## 확장 가능성
 
 ### 향후 추가 가능 기능
