@@ -9,6 +9,9 @@ import {
   ConcertTableRowSchema,
   ConcertResponseSchema,
   type ConcertResponse,
+  ConcertDetailResponseSchema,
+  type ConcertDetailResponse,
+  type SeatGradeInfo,
 } from '@/features/concerts/backend/schema';
 import {
   concertErrorCodes,
@@ -164,4 +167,95 @@ export const getConcerts = async (
   }
 
   return success(concerts);
+};
+
+export const getConcertById = async (
+  client: SupabaseClient,
+  concertId: string,
+): Promise<HandlerResult<ConcertDetailResponse, ConcertServiceError, unknown>> => {
+  // 1. UUID 형식 검증
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(concertId)) {
+    return failure(400, concertErrorCodes.notFound, '잘못된 콘서트 ID 형식입니다');
+  }
+
+  // 2. 콘서트 기본 정보 조회
+  const { data: concert, error: concertError } = await client
+    .from(CONCERTS_TABLE)
+    .select('*')
+    .eq('id', concertId)
+    .single();
+
+  if (concertError || !concert) {
+    return failure(404, concertErrorCodes.notFound, '콘서트를 찾을 수 없습니다');
+  }
+
+  // 3. 등급별 좌석 집계
+  const { data: seatsData, error: seatsError } = await client
+    .from(SEATS_TABLE)
+    .select('grade, price, status')
+    .eq('concert_id', concertId);
+
+  if (seatsError) {
+    return failure(500, concertErrorCodes.fetchError, seatsError.message);
+  }
+
+  // 4. 등급별 집계 계산
+  const gradeMap = new Map<string, { price: number; total: number; available: number }>();
+
+  seatsData?.forEach((seat) => {
+    const existing = gradeMap.get(seat.grade) || { price: seat.price, total: 0, available: 0 };
+    existing.total += 1;
+    if (seat.status === 'available') {
+      existing.available += 1;
+    }
+    gradeMap.set(seat.grade, existing);
+  });
+
+  // 5. 등급 순서 정렬 및 응답 데이터 생성
+  const gradeOrder = ['Special', 'Premium', 'Advanced', 'Regular'];
+  const grades: SeatGradeInfo[] = gradeOrder
+    .filter((grade) => gradeMap.has(grade))
+    .map((grade) => {
+      const info = gradeMap.get(grade)!;
+      return {
+        grade: grade as 'Special' | 'Premium' | 'Advanced' | 'Regular',
+        price: info.price,
+        totalSeats: info.total,
+        availableSeats: info.available,
+        availabilityRate: info.total > 0 ? Math.round((info.available / info.total) * 10000) / 100 : 0,
+      };
+    });
+
+  // 6. 전체 좌석 집계
+  const totalSeats = grades.reduce((sum, g) => sum + g.totalSeats, 0);
+  const totalAvailableSeats = grades.reduce((sum, g) => sum + g.availableSeats, 0);
+
+  // 7. 응답 데이터 구성
+  const response: ConcertDetailResponse = {
+    id: concert.id,
+    title: concert.title,
+    artist: concert.artist,
+    venue: concert.venue,
+    date: new Date(concert.date).toISOString(),
+    posterImage: concert.poster_image ?? fallbackPosterImage(concert.id),
+    description: concert.description,
+    grades,
+    totalSeats,
+    totalAvailableSeats,
+  };
+
+  // 8. 응답 검증
+  const parsed = ConcertDetailResponseSchema.safeParse(response);
+
+  if (!parsed.success) {
+    return failure(
+      500,
+      concertErrorCodes.validationError,
+      'Concert detail response failed validation.',
+      parsed.error.format(),
+    );
+  }
+
+  return success(parsed.data);
 };

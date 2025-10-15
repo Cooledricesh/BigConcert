@@ -37,3 +37,30 @@ export type ConcertResponse = z.infer<typeof ConcertResponseSchema>;
 export const ConcertListResponseSchema = z.array(ConcertResponseSchema);
 
 export type ConcertListResponse = z.infer<typeof ConcertListResponseSchema>;
+
+// 등급별 좌석 정보 스키마
+export const SeatGradeInfoSchema = z.object({
+  grade: z.enum(['Special', 'Premium', 'Advanced', 'Regular']),
+  price: z.number().int().positive(),
+  totalSeats: z.number().int().nonnegative(),
+  availableSeats: z.number().int().nonnegative(),
+  availabilityRate: z.number().min(0).max(100),
+});
+
+export type SeatGradeInfo = z.infer<typeof SeatGradeInfoSchema>;
+
+// 콘서트 상세 응답 스키마
+export const ConcertDetailResponseSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  artist: z.string(),
+  venue: z.string(),
+  date: z.string().datetime(),
+  posterImage: z.string().nullable(),
+  description: z.string().nullable(),
+  grades: z.array(SeatGradeInfoSchema),
+  totalSeats: z.number().int().nonnegative(),
+  totalAvailableSeats: z.number().int().nonnegative(),
+});
+
+export type ConcertDetailResponse = z.infer<typeof ConcertDetailResponseSchema>;
