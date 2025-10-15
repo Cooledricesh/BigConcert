@@ -271,20 +271,24 @@ interface BookingCompletionState {
 ```
 
 ### 상태 저장 전략
-1. **세션 스토리지 사용 (권장)**
-   - 탭/창 단위로 상태 유지
-   - 브라우저 종료 시 자동 삭제
-   - 보안성 상대적으로 높음
+1. **통일된 저장 전략**
+   - **예약 완료 정보**: sessionStorage + URL param 조합
+   - sessionStorage에 예약 상세 정보 저장 (30분 TTL)
+   - URL에는 bookingId만 포함 (`?id=[bookingId]`)
+   - 새로고침 시: sessionStorage 우선, 없으면 URL의 bookingId로 재조회
 
-2. **로컬 스토리지 사용 (선택적)**
-   - 브라우저 종료 후에도 유지
-   - 만료 시간 설정 필요 (예: 30분)
-   - 전화번호 자동 입력 등 편의성 제공
-
-3. **URL 파라미터 사용 (대안)**
-   - 예약 ID를 쿼리 스트링에 포함
-   - 새로고침 시 BE에서 재조회
-   - 보안 고려 필요 (민감 정보 노출 주의)
+2. **저장 형식**
+   ```typescript
+   {
+     bookingId: string,
+     concertInfo: {...},
+     seats: [...],
+     userInfo: {...},
+     totalPrice: number,
+     createdAt: string,
+     expiresAt: number // timestamp
+   }
+   ```
 
 ---
 

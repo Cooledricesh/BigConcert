@@ -339,11 +339,11 @@ export const SeatSelectionProvider: React.FC<SeatSelectionProviderProps> = ({
   children,
   concertId,
   maxSeats = 4,
-  syncInterval = 10000
+  syncInterval = 3000 // 기본 3초로 변경
 }) => {
   // 1. useReducer 초기화
   // 2. useEffect로 초기 데이터 로드
-  // 3. useEffect로 실시간 동기화 설정
+  // 3. useEffect로 실시간 동기화 설정 (사용자 인터랙션 기반 동적 조정)
   // 4. useMemo로 computed 값 계산
   // 5. useCallback으로 actions 메모이제이션
   // 6. Context.Provider로 값 제공
@@ -501,17 +501,56 @@ const loadConcertInfo = async (concertId: string) => {
 
 ### 실시간 동기화 전략
 ```typescript
-// MVP: 10초 간격 폴링
+// MVP: 3초 간격 폴링 + 사용자 인터랙션 기반 동적 조정
+const [dynamicInterval, setDynamicInterval] = useState(3000);
+const lastInteractionRef = useRef(Date.now());
+
+// 사용자 인터랙션 추적
+const trackInteraction = useCallback(() => {
+  lastInteractionRef.current = Date.now();
+  setDynamicInterval(3000); // 인터랙션 시 3초로 단축
+}, []);
+
+// 좌석 선택 시 즉시 가용성 체크
+const selectSeat = useCallback(async (seatId: string) => {
+  trackInteraction();
+
+  // 낙관적 업데이트
+  dispatch({ type: 'SELECT_SEAT', payload: { seatId } });
+
+  // 즉시 백엔드 검증
+  try {
+    const response = await apiClient.post('/api/seats/check-availability', {
+      concertId,
+      seatIds: [seatId]
+    });
+
+    if (!response.data.available) {
+      dispatch({ type: 'DESELECT_SEAT', payload: { seatId } });
+      dispatch({ type: 'SET_ERROR', payload: {
+        type: 'ALREADY_RESERVED',
+        message: '선택하신 좌석이 이미 예약되었습니다'
+      }});
+    }
+  } catch (error) {
+    dispatch({ type: 'DESELECT_SEAT', payload: { seatId } });
+  }
+}, [concertId]);
+
 useEffect(() => {
   const interval = setInterval(() => {
+    const timeSinceLastInteraction = Date.now() - lastInteractionRef.current;
+
+    // 10초 이상 인터랙션 없으면 폴링 간격 10초로 증가
+    if (timeSinceLastInteraction > 10000 && dynamicInterval !== 10000) {
+      setDynamicInterval(10000);
+    }
+
     refreshSeats();
-  }, syncInterval);
+  }, dynamicInterval);
 
   return () => clearInterval(interval);
-}, [syncInterval]);
-
-// 향후 확장: WebSocket
-// 사용자 인터랙션 중에는 동기화 일시 중지
+}, [dynamicInterval]);
 ```
 
 ## 🎯 기술 스택 선택 근거
@@ -522,22 +561,6 @@ useEffect(() => {
 3. **타입 안정성**: TypeScript와 자연스러운 통합
 4. **디버깅 용이성**: Redux DevTools 연동 가능
 
-### Zustand 대안 고려
-PRD에서는 zustand를 권장하고 있으나, 다음의 경우 마이그레이션 고려:
-- 여러 페이지에서 좌석 선택 상태 공유 필요 시
-- 성능 최적화가 더 중요해질 때
-- 상태 persist가 필요할 때
-
-### 마이그레이션 경로
-```typescript
-// Context API → Zustand 전환 예시
-const useSeatStore = create<SeatSelectionState>((set) => ({
-  // 동일한 상태 구조 재사용
-  seats: [],
-  selectedSeats: [],
-  // ... actions를 store 메서드로 전환
-}));
-```
 
 ## 📋 버전 정보
 - 작성일: 2025-10-15

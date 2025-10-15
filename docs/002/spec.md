@@ -271,18 +271,26 @@ GET /api/concerts/:id
 ### Response (Error - 404)
 ```typescript
 {
-  error: "CONCERT_NOT_FOUND";
-  message: "콘서트를 찾을 수 없습니다";
+  success: false;
+  error: {
+    code: "CONCERT_NOT_FOUND";
+    message: "콘서트를 찾을 수 없습니다";
+  }
 }
 ```
 
 ### Response (Error - 400)
 ```typescript
 {
-  error: "INVALID_CONCERT_ID";
-  message: "잘못된 콘서트 ID 형식입니다";
+  success: false;
+  error: {
+    code: "INVALID_CONCERT_ID";
+    message: "잘못된 콘서트 ID 형식입니다";
+  }
 }
 ```
+
+**참고**: 에러 코드는 `/docs/error-codes.md` 참조
 
 ---
 

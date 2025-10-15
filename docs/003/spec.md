@@ -144,6 +144,27 @@
 1. **available**: 선택 가능
 2. **reserved**: 예약 완료 (선택 불가)
 
+### 세션 저장 전략
+1. **선택 좌석 정보**: sessionStorage에 저장
+   - 브라우저 탭 단위로 유지
+   - 탭 종료 시 자동 삭제
+   - TTL: 30분 (페이지 이탈 후 30분까지 유지)
+2. **저장 형식**:
+   ```typescript
+   {
+     concertId: string,
+     selectedSeats: Array<{
+       seatId: string,
+       section: string,
+       row: number,
+       number: number,
+       grade: string,
+       price: number
+     }>,
+     expiresAt: number // timestamp
+   }
+   ```
+
 ### 금액 계산
 - 선택한 각 좌석의 가격을 합산
 - 실시간 계산 및 표시
@@ -180,7 +201,7 @@
 }
 ```
 
-### POST /api/seats/select (Optional)
+### POST /api/seats/check-availability
 좌석 선택 가능 여부 검증 (실시간 확인)
 
 **Request**
@@ -264,7 +285,7 @@ FE --> User: 좌석 선택 해제 표시\n총 금액 업데이트
 
 == 다른 사용자 동시 예약 시나리오 ==
 User -> FE: 좌석 B-5-2 선택 시도
-FE -> BE: POST /api/seats/select\n{seat_ids: [B-5-2]}
+FE -> BE: POST /api/seats/check-availability\n{concertId, seatIds: [B-5-2]}
 BE -> DB: SELECT status FROM seats\nWHERE id = :seat_id\nFOR UPDATE
 DB --> BE: status = 'reserved' (다른 사용자가 예약)
 BE --> FE: {available: false, message: "이미 예약됨"}
@@ -291,30 +312,14 @@ FE --> User: 에러 메시지 + 재시도 버튼
 @enduml
 ```
 
-## 향후 확장 가능성
+## 향후 개선 가능 사항
 
-### 좌석 임시 선점 기능
-현재 MVP에서는 예약 완료 시점에 트랜잭션과 Row Lock을 통해 데이터 정합성을 보장합니다.
-향후 사용자 경험 개선을 위해 다음 기능을 고려할 수 있습니다:
-
-#### 구현 방안
-- **임시 선점 시간**: 좌석 선택 후 10분간 독점
-- **자동 해제**: 10분 내 예약 미완료 시 자동 해제
-- **실시간 업데이트**: WebSocket을 통한 좌석 상태 실시간 반영
-- **선점 연장**: 추가 시간이 필요한 경우 1회 연장 가능 (5분)
-- **시각적 표시**: 다른 사용자가 선점 중인 좌석은 별도 색상으로 표시
-
-#### 기대 효과
-- 사용자가 좌석을 선택하고 정보 입력까지 안심하고 진행 가능
-- 마지막 단계에서 "이미 선택된 좌석입니다" 메시지로 인한 허탈감 방지
-- 다른 사용자도 선점 중인 좌석을 피해 효율적인 선택 가능
-
-### 기타 향후 개선 사항
+### MVP 이후 고려 사항
 - 3D 좌석 배치도 뷰어
 - 무대 시야각 미리보기
-- AI 기반 좌석 추천 시스템
 - 그룹 좌석 자동 선택 기능
 - 휠체어 접근 가능 좌석 표시
+- 좌석별 실제 무대 뷰 사진 제공
 
 ## 관련 문서
 - PRD: `/docs/prd.md`
