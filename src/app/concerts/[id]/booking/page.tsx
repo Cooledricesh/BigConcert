@@ -98,7 +98,7 @@ export default function BookingPage({
         const errorMessage = error.message || '예약 처리 중 오류가 발생했습니다';
 
         // 좌석 충돌 에러인 경우
-        if (errorCode === 'SEAT_ALREADY_RESERVED') {
+        if (errorCode === 'SEAT_ALREADY_RESERVED' || errorMessage.includes('좌석 중 일부가 이미 예약')) {
           toast({
             title: '좌석 예약 실패',
             description: '선택하신 좌석 중 일부가 이미 예약되었습니다. 다른 좌석을 선택해주세요.',
@@ -109,7 +109,7 @@ export default function BookingPage({
           router.push(`/concerts/${concertId}/seats`);
         }
         // 중복 예약 에러인 경우
-        else if (errorCode === 'DUPLICATE_BOOKING') {
+        else if (errorCode === 'DUPLICATE_BOOKING' || errorMessage.includes('이미 해당 공연을 예약')) {
           toast({
             title: '중복 예약',
             description: '이미 해당 공연을 예약하셨습니다. 예약 조회 페이지에서 확인해주세요.',

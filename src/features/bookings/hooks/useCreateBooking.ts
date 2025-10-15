@@ -45,8 +45,5 @@ export const useCreateBooking = (): UseMutationResult<
         throw error;
       }
     },
-    onError: (error) => {
-      console.error('Booking creation failed:', error);
-    },
   });
 };
