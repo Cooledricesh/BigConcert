@@ -188,6 +188,9 @@ use following libraries for specific functionalities:
 - if you need to add new table, please create migration. I'll paste it into supabase.
 - do not run supabase locally
 - store migration query for `.sql` file. in /supabase/migrations/
+- When validating Supabase timestamps with Zod, use `z.string()` instead of `z.string().datetime()` as DB returns microseconds
+- Database datetime format includes microseconds (e.g., 2025-10-15T14:27:59.266163+00:00) which fails strict datetime validation
+- For optional timestamp fields like created_at/updated_at, use `z.string().optional()` to avoid validation errors
 
 ## Package Manager
 
